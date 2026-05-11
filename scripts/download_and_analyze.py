@@ -88,7 +88,7 @@ def download_pbf(state: str, output_dir: Path) -> Path | None:
     logger.info("Downloading %s from Geofabrik...", state)
     try:
         subprocess.run(
-            ["curl", "-# ", "-o", str(output_path), url],
+            ["curl", "-o", str(output_path), url],
             check=True,
             capture_output=True,
             text=True,

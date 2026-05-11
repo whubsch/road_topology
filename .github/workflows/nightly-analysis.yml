@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   analyze:
+    name: Analyze US States
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -45,6 +46,24 @@ jobs:
       - name: Generate homepage
         run: |
           python scripts/generate_homepage.py
+
+      - name: Upload analysis results as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: analysis-results
+          path: gh-pages/
+          retention-days: 1
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download analysis results
+        uses: actions/download-artifact@v8
+        with:
+          name: analysis-results
+          path: gh-pages
 
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v5
