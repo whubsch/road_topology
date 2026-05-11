@@ -81,20 +81,31 @@ def download_pbf(state: str, output_dir: Path) -> Path | None:
     url = f"https://download.geofabrik.de/north-america/us/{state}-latest.osm.pbf"
     output_path = output_dir / f"{state}-latest.osm.pbf"
 
-    if output_path.exists():
+    if output_path.exists() and output_path.stat().st_size > 0:
         logger.info("File already exists: %s", output_path)
         return output_path
 
     logger.info("Downloading %s from Geofabrik...", state)
     try:
-        subprocess.run(
-            ["curl", "-o", str(output_path), url],
+        result = subprocess.run(
+            ["curl", "-L", "-o", str(output_path), url],
             check=True,
             capture_output=True,
             text=True,
+            timeout=600,  # 10 minute timeout per file
         )
-        logger.info("Downloaded: %s", output_path)
+
+        # Verify file was actually downloaded and has content
+        if not output_path.exists() or output_path.stat().st_size == 0:
+            logger.error("Download produced empty or missing file for %s", state)
+            return None
+
+        file_size_mb = output_path.stat().st_size / (1024 * 1024)
+        logger.info("Downloaded %s (%.1f MB): %s", state, file_size_mb, output_path)
         return output_path
+    except subprocess.TimeoutExpired:
+        logger.error("Download timeout for %s (exceeded 10 minutes)", state)
+        return None
     except subprocess.CalledProcessError as e:
         logger.error("Failed to download %s: %s", state, e)
         return None
