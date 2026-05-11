@@ -1,0 +1,24 @@
+[project]
+name = "osm-road-topology"
+version = "0.1.0"
+description = "Detect OSM highway topology errors via PBF analysis"
+requires-python = ">=3.14"
+dependencies = [
+    "osmium>=3.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov",
+]
+
+[project.scripts]
+osm-highway-checker = "osm_highway_checker.__main__:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["osm_highway_checker*"]
