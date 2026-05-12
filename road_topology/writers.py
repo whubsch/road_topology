@@ -75,7 +75,7 @@ def write_html(
         "<body>",
         "<div class='container'>",
         f"  <h1>🚗 OSM Highway Topology Errors{' — ' + state_name if state_name else ''}</h1>",
-        f"  <div class='metadata'>",
+        "  <div class='metadata'>",
         f"    <strong>Generated:</strong> {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}<br>",
         f"    <strong>Total Issues:</strong> {len(flagged):,}<br>  </div>",
         "  <table>",
@@ -105,7 +105,7 @@ def write_html(
         try:
             ts = dt.fromisoformat(fw.timestamp.replace("Z", "+00:00"))
             formatted_timestamp = ts.strftime("%d %b %Y")
-        except (ValueError, AttributeError):
+        except ValueError, AttributeError:
             formatted_timestamp = fw.timestamp
 
         # Escape HTML characters in issue
@@ -120,13 +120,12 @@ def write_html(
         html_lines.extend(
             [
                 "      <tr>",
-                f"        <td class='way-id'>{fw.way_id}</td>",
+                f"        <td class='way-id'><a href='{fw.osm_url()}' target='_blank'>{fw.way_id}</a></td>",
                 f"        <td><span class='highway'>{fw.highway}</span></td>",
                 f"        <td>{fw.version}</td>",
                 f"        <td class='timestamp'>{formatted_timestamp}</td>",
                 f"        <td class='issue'>{issue_escaped}</td>",
-                f"        <td class='editors'>",
-                f"          <a href='{fw.osm_url()}' target='_blank' class='editor-btn osm-link'>OSM</a>",
+                "        <td class='editors'>",
                 f"          <a href='{fw.id_url()}' target='_blank' class='editor-btn id-link'>iD</a>",
                 f"          <a href='{fw.josm_url()}' target='_blank' class='editor-btn josm-link'>JOSM</a>",
                 f"          <a href='{fw.level0_url()}' target='_blank' class='editor-btn level0-link'>L0</a>",

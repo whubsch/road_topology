@@ -21,7 +21,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from .hierarchy import ANALYSED_MAX_RANK, is_analysed, qualifies_as_upgrade
+from .hierarchy import is_analysed, qualifies_as_upgrade
 from .parser import NodeCoord, WayRecord
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ class FlaggedWay:
 
     def josm_url(self) -> str:
         """JOSM editor link (requires JOSM to be running)."""
-        return f"http://localhost:8111/load_and_zoom?ways={self.way_id}"
+        return f"http://localhost:8111/load_object?objects=w{self.way_id}"
 
     def id_url(self) -> str:
         """iD editor link."""
@@ -124,14 +124,15 @@ def build_terminus_index(
     ways: dict[int, WayRecord],
 ) -> dict[int, list[WayRecord]]:
     """
-    Build an inverted index: node_id → list of WayRecords whose terminus is that node.
+    Build an inverted index: node_id → list of WayRecords that contain that node.
 
-    Only terminus nodes (first and last) are indexed, because those are the
-    only points where topology continuity matters.
+    All nodes of each way are indexed, including intermediate nodes, so that
+    we can find roads that connect at a terminus even if they meet in the
+    middle of another way rather than at its endpoint.
     """
     index: dict[int, list[WayRecord]] = {}
     for way in ways.values():
-        for node_id in (way.start_node, way.end_node):
+        for node_id in way.node_ids:
             index.setdefault(node_id, []).append(way)
     return index
 
@@ -152,6 +153,8 @@ def check_topology(
       1. Its highway type is in the analysed set (motorway → tertiary).
       2. BOTH termini have at least one connecting road (i.e. not a dead-end).
       3. Neither terminus has a connecting road of equal or higher rank.
+
+    Roundabouts (closed ways where start_node == end_node) are skipped.
     """
     logger.info("Building terminus index from %d ways …", len(ways))
     index = build_terminus_index(ways)
@@ -159,6 +162,7 @@ def check_topology(
     flagged: list[FlaggedWay] = []
     analysed_count = 0
     skipped_deadend = 0
+    skipped_roundabout = 0
     skipped_ok = 0
 
     for way in ways.values():
@@ -166,6 +170,11 @@ def check_topology(
             continue
 
         analysed_count += 1
+
+        # Skip roundabouts and other closed ways
+        if way.start_node == way.end_node:
+            skipped_roundabout += 1
+            continue
 
         start_info = _evaluate_terminus(way, way.start_node, index, node_coords)
         end_info = _evaluate_terminus(way, way.end_node, index, node_coords)
@@ -197,9 +206,10 @@ def check_topology(
 
     logger.info(
         "Analysis complete: %d ways checked | %d flagged | "
-        "%d skipped (dead-end/boundary) | %d OK",
+        "%d skipped (roundabout) | %d skipped (dead-end/boundary) | %d OK",
         analysed_count,
         len(flagged),
+        skipped_roundabout,
         skipped_deadend,
         skipped_ok,
     )

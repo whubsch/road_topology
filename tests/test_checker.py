@@ -29,6 +29,7 @@ from osm_highway_checker.parser import WayRecord, NodeCoord
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_way(
     way_id: int,
     highway: str,
@@ -51,6 +52,7 @@ def make_coord(node_id: int, lat: float = 51.5, lon: float = -0.1) -> NodeCoord:
 # ---------------------------------------------------------------------------
 # hierarchy.py
 # ---------------------------------------------------------------------------
+
 
 class TestHierarchy:
 
@@ -75,8 +77,15 @@ class TestHierarchy:
         assert get_rank("") is None
 
     def test_is_analysed(self):
-        for hw in ["motorway", "motorway_link", "trunk", "primary", "secondary",
-                   "tertiary", "tertiary_link"]:
+        for hw in [
+            "motorway",
+            "motorway_link",
+            "trunk",
+            "primary",
+            "secondary",
+            "tertiary",
+            "tertiary_link",
+        ]:
             assert is_analysed(hw), f"{hw} should be analysed"
 
     def test_is_not_analysed(self):
@@ -102,6 +111,7 @@ class TestHierarchy:
 # checker.py — build_terminus_index
 # ---------------------------------------------------------------------------
 
+
 class TestTerminusIndex:
 
     def test_basic_index(self):
@@ -121,10 +131,7 @@ class TestTerminusIndex:
 
     def test_node_appears_in_multiple_ways(self):
         shared_node = 999
-        ways = {
-            i: make_way(i, "secondary", [shared_node, i * 10])
-            for i in range(1, 6)
-        }
+        ways = {i: make_way(i, "secondary", [shared_node, i * 10]) for i in range(1, 6)}
         index = build_terminus_index(ways)
         assert len(index[shared_node]) == 5
 
@@ -132,6 +139,7 @@ class TestTerminusIndex:
 # ---------------------------------------------------------------------------
 # checker.py — check_topology (integration-style)
 # ---------------------------------------------------------------------------
+
 
 class TestCheckTopology:
 
@@ -190,7 +198,7 @@ class TestCheckTopology:
     def test_primary_connecting_to_trunk_not_flagged(self):
         node_A, node_B = 1, 2
         primary_way = make_way(10, "primary", [node_A, node_B])
-        trunk = make_way(20, "trunk", [node_A, 100])        # higher rank at A
+        trunk = make_way(20, "trunk", [node_A, 100])  # higher rank at A
         residential = make_way(30, "residential", [node_B, 101])  # lower at B
 
         ways = {10: primary_way, 20: trunk, 30: residential}
@@ -201,7 +209,7 @@ class TestCheckTopology:
     def test_primary_connecting_to_another_primary_not_flagged(self):
         node_A, node_B = 1, 2
         p1 = make_way(10, "primary", [node_A, node_B])
-        p2 = make_way(20, "primary", [node_A, 100])     # equal rank at A
+        p2 = make_way(20, "primary", [node_A, 100])  # equal rank at A
         res = make_way(30, "residential", [node_B, 101])
 
         ways = {10: p1, 20: p2, 30: res}
@@ -253,9 +261,18 @@ class TestCheckTopology:
         assert flagged
 
         d = flagged[0].to_dict()
-        for key in ["way_id", "highway", "rank",
-                    "start_node_id", "start_lat", "start_lon",
-                    "end_node_id", "end_lat", "end_lon", "josm_url"]:
+        for key in [
+            "way_id",
+            "highway",
+            "rank",
+            "start_node_id",
+            "start_lat",
+            "start_lon",
+            "end_node_id",
+            "end_lat",
+            "end_lon",
+            "josm_url",
+        ]:
             assert key in d, f"Missing key: {key}"
 
     def test_coordinates_attached_to_flagged_way(self):

@@ -1,5 +1,6 @@
 output/
 .venv/
+.ropeproject/
 
 road_topology/*.md
 road_topology/*.txt
@@ -16,3 +17,5 @@ __pycache__/
 
 .env
 .env.*
+
+*.osm.pbf
