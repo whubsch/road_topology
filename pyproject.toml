@@ -1,10 +1,13 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "osm-road-topology"
 version = "0.1.0"
 description = "Detect OSM highway topology errors via PBF analysis"
 requires-python = ">=3.14"
 dependencies = [
-    "black>=26.3.1",
     "osmium>=3.7",
 ]
 

@@ -11,16 +11,12 @@ import pytest
 from osm_highway_checker.hierarchy import (
     get_rank,
     is_analysed,
-    is_valid_neighbour,
     qualifies_as_upgrade,
-    ANALYSED_MAX_RANK,
 )
 from osm_highway_checker.checker import (
     FlaggedWay,
-    TerminusInfo,
     build_terminus_index,
     check_topology,
-    _evaluate_terminus,
 )
 from osm_highway_checker.parser import WayRecord, NodeCoord
 
@@ -54,7 +50,6 @@ def make_coord(node_id: int, lat: float = 51.5, lon: float = -0.1) -> NodeCoord:
 
 
 class TestHierarchy:
-
     def test_rank_ordering(self):
         assert get_rank("motorway") < get_rank("trunk")
         assert get_rank("trunk") < get_rank("primary")
@@ -112,7 +107,6 @@ class TestHierarchy:
 
 
 class TestTerminusIndex:
-
     def test_basic_index(self):
         w1 = make_way(1, "primary", [100, 101, 102])
         w2 = make_way(2, "secondary", [102, 103, 104])
@@ -141,7 +135,6 @@ class TestTerminusIndex:
 
 
 class TestCheckTopology:
-
     def _run(
         self,
         ways: dict[int, WayRecord],
