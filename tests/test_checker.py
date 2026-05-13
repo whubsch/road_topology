@@ -24,7 +24,6 @@ from osm_highway_checker.checker import (
 )
 from osm_highway_checker.parser import WayRecord, NodeCoord
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
