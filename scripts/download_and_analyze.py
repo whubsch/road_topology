@@ -113,13 +113,16 @@ def download_pbf(state: str, output_dir: Path) -> Path | None:
 
 def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
     """Analyze a PBF file for topology errors."""
+    import re
+    import shutil
+
     state_name = STATE_NAMES.get(state, state.replace("-", " ").title())
     output_file = output_dir / f"{state}.html"
 
     logger.info("Analyzing %s...", state)
     try:
         # Run the osm-highway-checker
-        subprocess.run(
+        result = subprocess.run(
             [
                 sys.executable,
                 "-m",
@@ -133,10 +136,17 @@ def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
                 "--state-name",
                 state_name,
             ],
-            check=True,
             capture_output=True,
             text=True,
         )
+
+        # Check if the subprocess ran successfully
+        if result.returncode != 0:
+            logger.error(
+                "Analysis failed for %s with return code %d", state, result.returncode
+            )
+            logger.error("stderr: %s", result.stderr)
+            return {"state": state, "name": state_name, "issues": 0, "success": False}
 
         # Find the generated HTML file and rename it
         tmp_dir = output_dir / ".tmp"
@@ -149,16 +159,12 @@ def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
             logger.info("Generated report: %s", output_file)
 
             # Clean up temporary directory
-            import shutil
-
             try:
                 shutil.rmtree(tmp_dir)
             except Exception as e:
                 logger.warning("Failed to remove temp directory: %s", e)
 
             # Extract issue count from the HTML
-            import re
-
             with open(output_file, "r") as f:
                 content = f.read()
                 # Look for "Total Issues: X,XXX" in the metadata
@@ -175,10 +181,8 @@ def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
             logger.error("No HTML file generated for %s", state)
             return {"state": state, "name": state_name, "issues": 0, "success": False}
 
-    except subprocess.CalledProcessError as e:
-        logger.error("Failed to analyze %s: %s", state, e)
-        logger.error("stdout: %s", e.stdout)
-        logger.error("stderr: %s", e.stderr)
+    except Exception as e:
+        logger.error("Exception during analysis of %s: %s", state, e)
         return {"state": state, "name": state_name, "issues": 0, "success": False}
 
 

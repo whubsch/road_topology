@@ -47,6 +47,10 @@ jobs:
         run: |
           python scripts/generate_homepage.py
 
+      - name: Copy favicon
+        run: |
+          cp docs/favicon.svg gh-pages/favicon.svg
+
       - name: Upload analysis results as artifact
         uses: actions/upload-artifact@v7
         with:

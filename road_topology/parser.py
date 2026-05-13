@@ -30,6 +30,7 @@ class WayRecord:
     highway: str
     rank: int
     node_ids: list[int]  # full node sequence; [0] and [-1] are the termini
+    name: Optional[str]
     version: int
     changeset: int
     user: str
@@ -96,6 +97,7 @@ class WayCollector(osmium.SimpleHandler):  # type: ignore
             highway=highway,
             rank=rank,
             node_ids=node_ids,
+            name=w.tags.get("name"),
             version=w.version,
             changeset=w.changeset,
             user=w.user,
@@ -277,6 +279,7 @@ class _LocationAwareWayHandler(osmium.SimpleHandler):  # type: ignore
             highway=highway,
             rank=rank,
             node_ids=node_ids,
+            name=w.tags.get("name"),
             version=w.version,
             changeset=w.changeset,
             user=w.user,

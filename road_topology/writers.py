@@ -48,6 +48,7 @@ def write_html(
         "  <meta charset='UTF-8'>",
         "  <meta name='viewport' content='width=device-width, initial-scale=1.0'>",
         "  <title>OSM Highway Topology Errors</title>",
+        "  <link rel='icon' href='/road_topology/favicon.svg' type='image/svg+xml'>",
         "  <style>",
         "    * { font-family: sans-serif; }",
         "    body { background: #f5f5f5; padding: 20px; }",
@@ -62,12 +63,16 @@ def write_html(
         "    .highway { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 13px; }",
         "    .timestamp { color: #666; font-size: 13px; }",
         "    .editors { white-space: nowrap; }",
-        "    .editor-btn { display: inline-block; padding: 5px 10px; margin: 2px; border-radius: 3px; text-decoration: none; font-size: 12px; font-weight: bold; transition: opacity 0.2s; }",
-        "    .editor-btn:hover { opacity: 0.8; }",
-        "    .osm-link { background: #ff7043; color: white; }",
+        "    .editor-btn { display: inline-block; padding: 5px 10px; margin: 2px; border-radius: 3px; text-decoration: none; font-size: 12px; font-weight: bold; transition: opacity 0.2s; border: none; cursor: pointer; }",
+        "    .editor-btn:hover { opacity: 0.9; }",
+        "    .osm-link { background: #0066cc; color: white; }",
+        "    .osm-link:visited { background: #999999; color: white; }",
         "    .id-link { background: #1c4995; color: white; }",
+        "    .id-link:visited { background: #999999; color: white; }",
         "    .josm-link { background: #5a5a5a; color: white; }",
+        "    .josm-link:visited { background: #999999; color: white; }",
         "    .level0-link { background: #4caf50; color: white; }",
+        "    .level0-link:visited { background: #999999; color: white; }",
         "    .issue { color: #d32f2f; font-size: 13px; }",
         "    .header { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }",
         "  </style>",
@@ -82,6 +87,7 @@ def write_html(
         "    <thead>",
         "      <tr>",
         "        <th class='header'>Way ID</th>",
+        "        <th class='header'>Name</th>",
         "        <th class='header'>Highway</th>",
         "        <th class='header'>Version</th>",
         "        <th class='header'>Last Edited</th>",
@@ -96,7 +102,6 @@ def write_html(
     for fw in sorted(flagged, key=lambda x: (x.rank, -x.version)):
         # Build issue description
         issue = (
-            f"Both ends connect only to lower-class roads: "
             f"Start: {fw.start.connecting_highways or 'none'}; "
             f"End: {fw.end.connecting_highways or 'none'}"
         )
@@ -104,7 +109,7 @@ def write_html(
         # Parse and format timestamp in a user-friendly way
         try:
             ts = dt.fromisoformat(fw.timestamp.replace("Z", "+00:00"))
-            formatted_timestamp = ts.strftime("%d %b %Y")
+            formatted_timestamp = ts.strftime("%-d %b '%y")
         except ValueError, AttributeError:
             formatted_timestamp = fw.timestamp
 
@@ -121,14 +126,16 @@ def write_html(
             [
                 "      <tr>",
                 f"        <td class='way-id'><a href='{fw.osm_url()}' target='_blank'>{fw.way_id}</a></td>",
+                f"        <td>{fw.name or ''}</td>",
                 f"        <td><span class='highway'>{fw.highway}</span></td>",
                 f"        <td>{fw.version}</td>",
                 f"        <td class='timestamp'>{formatted_timestamp}</td>",
                 f"        <td class='issue'>{issue_escaped}</td>",
                 "        <td class='editors'>",
+                f"          <a href='{fw.osm_url()}' target='_blank' class='editor-btn osm-link'>OSM</a>",
                 f"          <a href='{fw.id_url()}' target='_blank' class='editor-btn id-link'>iD</a>",
                 f"          <a href='{fw.josm_url()}' target='_blank' class='editor-btn josm-link'>JOSM</a>",
-                f"          <a href='{fw.level0_url()}' target='_blank' class='editor-btn level0-link'>L0</a>",
+                f"          <a href='{fw.level0_url()}' target='_blank' class='editor-btn level0-link'>L0</a>"
                 f"        </td>",
                 "      </tr>",
             ]
@@ -155,6 +162,7 @@ def write_html(
 
 CSV_FIELDS = [
     "way_id",
+    "name",
     "highway",
     "rank",
     "start_node_id",

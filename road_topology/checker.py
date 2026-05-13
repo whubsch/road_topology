@@ -57,6 +57,7 @@ class TerminusInfo:
 @dataclass
 class FlaggedWay:
     way_id: int
+    name: Optional[str]
     highway: str
     rank: int
     start: TerminusInfo
@@ -85,6 +86,7 @@ class FlaggedWay:
     def to_dict(self) -> dict:
         return {
             "way_id": self.way_id,
+            "name": self.name,
             "highway": self.highway,
             "rank": self.rank,
             "version": self.version,
@@ -193,6 +195,7 @@ def check_topology(
         flagged.append(
             FlaggedWay(
                 way_id=way.way_id,
+                name=way.name,
                 highway=way.highway,
                 rank=way.rank,
                 start=start_info,

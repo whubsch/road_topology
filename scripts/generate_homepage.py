@@ -38,6 +38,7 @@ def generate_homepage():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSM Highway Topology Error Reports</title>
+    <link rel="icon" href="/road_topology/favicon.svg" type="image/svg+xml">
     <style>
         * {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -188,6 +189,14 @@ def generate_homepage():
             color: #4caf50;
         }}
 
+        a {{
+            color: #667eea;
+        }}
+
+        a:visited {{
+            color: #667eea;
+        }}
+
         footer {{
             text-align: center;
             color: white;
@@ -253,9 +262,20 @@ def generate_homepage():
 
         if result["success"]:
             link = f'<a href="{result["state"]}.html" class="report-link">View Report →</a>'
+            # For clean analyses, show descriptive label
+            if result["issues"] == 0:
+                issues_text = "0 issues ✨"
+                count_style = 'style="background: #4caf50;"'
+            else:
+                issues_text = f"{result['issues']:,} issues"
+                count_style = ""
+            issues_label = f'<span class="report-count {count_class}" {count_style}>{issues_text}</span>'
         else:
             link = (
                 '<span class="report-link" style="color: #999;">Analysis Failed</span>'
+            )
+            issues_label = (
+                '<span class="report-count" style="background: #d32f2f;">Error</span>'
             )
 
         html += f"""                <div class="report-item">
@@ -264,7 +284,7 @@ def generate_homepage():
                         <span class="report-name">{result["name"]}</span>
                     </div>
                     <div style="display: flex; align-items: center;">
-                        <span class="report-count {count_class}">{result["issues"]:,} issues</span>
+                        {issues_label}
                         {link}
                     </div>
                 </div>
@@ -280,9 +300,7 @@ def generate_homepage():
     </div>
 </body>
 </html>
-""".format(
-        timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    )
+""".format(timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"))
 
     # Write homepage
     homepage_path = pages_dir / "index.html"
