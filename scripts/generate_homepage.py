@@ -300,7 +300,9 @@ def generate_homepage():
     </div>
 </body>
 </html>
-""".format(timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"))
+""".format(
+        timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    )
 
     # Write homepage
     homepage_path = pages_dir / "index.html"
