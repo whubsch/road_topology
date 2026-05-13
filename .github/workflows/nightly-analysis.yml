@@ -2,8 +2,8 @@ name: Nightly OSM Highway Analysis
 
 on:
   schedule:
-    # Run at 4 AM EST (9 AM UTC) every day
-    - cron: "0 9 * * *"
+    # Run at 7:34 AM UTC every day
+    - cron: "34 7 * * *"
   workflow_dispatch:
 
 permissions:
