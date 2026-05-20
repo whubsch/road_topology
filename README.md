@@ -162,7 +162,7 @@ The repository includes a GitHub Actions workflow that:
 
 The workflow is defined in `.github/workflows/nightly-analysis.yml`:
 
-- **Schedule**: Runs daily at 6 AM EST (11 AM UTC) via cron
+- **Schedule**: Runs every Friday at 7:34 AM UTC via cron
 - **Manual trigger**: Can be triggered on-demand via "Run workflow" button
 - **Duration**: Typically 30–60 minutes for all 50 US states
 
