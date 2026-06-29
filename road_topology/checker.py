@@ -73,7 +73,9 @@ class FlaggedWay:
 
     def josm_url(self) -> str:
         """JOSM editor link (requires JOSM to be running)."""
-        return f"http://localhost:8111/load_object?objects=w{self.way_id}"
+        return (
+            f"http://localhost:8111/load_object?new_layer=false&objects=w{self.way_id}"
+        )
 
     def id_url(self) -> str:
         """iD editor link."""

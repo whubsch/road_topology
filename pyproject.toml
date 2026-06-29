@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Detect OSM highway topology errors via PBF analysis"
 requires-python = ">=3.14"
 dependencies = [
+    "idna>=3.14",
     "osmium>=3.7",
 ]
 

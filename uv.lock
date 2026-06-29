@@ -123,6 +123,7 @@ name = "osm-road-topology"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "idna" },
     { name = "osmium" },
 ]
 
@@ -135,6 +136,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "idna", specifier = ">=3.14" },
     { name = "osmium", specifier = ">=3.7" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
