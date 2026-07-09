@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-06-30T10:37:54.419411+00:00",
+  "total_states": 1,
+  "total_issues": 11,
+  "successful_analyses": 1,
+  "results": [
+    {
+      "state": "idaho",
+      "name": "Idaho",
+      "issues": 11,
+      "success": true
+    }
+  ]
+}

@@ -50,19 +50,27 @@ python -m osm_highway_checker path/to/region.osm.pbf
 # With a custom output directory
 python -m osm_highway_checker region.osm.pbf --output-dir results/
 
+# Only emit the JSON report consumed by the React frontend
+python -m osm_highway_checker region.osm.pbf --json-only
+
 # Verbose logging
 python -m osm_highway_checker region.osm.pbf -v
 ```
 
 ### Output files
 
-Three files are written per run, timestamped:
+By default, four files are written per run, timestamped:
 
-| File                                             | Description                         |
-| ------------------------------------------------ | ----------------------------------- |
-| `osm_highway_errors_YYYYMMDD_HHMMSS.csv`         | Tabular data for spreadsheet review |
-| `osm_highway_errors_YYYYMMDD_HHMMSS.geojson`     | Line features for QGIS / geojson.io |
-| `osm_highway_errors_YYYYMMDD_HHMMSS_summary.txt` | Human-readable run summary          |
+| File                                             | Description                                      |
+| ------------------------------------------------ | ------------------------------------------------ |
+| `osm_highway_errors_YYYYMMDD_HHMMSS.json`        | Structured report consumed by the React frontend |
+| `osm_highway_errors_YYYYMMDD_HHMMSS.csv`         | Tabular data for spreadsheet review              |
+| `osm_highway_errors_YYYYMMDD_HHMMSS.geojson`     | Line features for QGIS / geojson.io              |
+| `osm_highway_errors_YYYYMMDD_HHMMSS_summary.txt` | Human-readable run summary                       |
+
+Use `--json-only` to write just the JSON report, or `--html-only` /
+`--with-html-report` to also produce a legacy standalone HTML table (kept
+for offline viewing outside of the React app).
 
 The GeoJSON draws a line between the two terminus points of each flagged way.
 Load in QGIS or drag into [geojson.io](https://geojson.io) for immediate visual review.
@@ -115,7 +123,7 @@ check_topology()                    checker.py
   │    if both connected + neither qualifies → FlaggedWay
   ▼
 write_all()                         writers.py
-     CSV + GeoJSON + summary
+     JSON report (frontend) + CSV + GeoJSON + summary
 ```
 
 ### Memory and performance
@@ -154,8 +162,8 @@ The repository includes a GitHub Actions workflow that:
 
 1. **Downloads** the latest PBF extracts from Geofabrik for all US states
 2. **Analyzes** each extract for topology errors
-3. **Generates** individual HTML reports for each state
-4. **Creates** a homepage index with links to all reports
+3. **Generates** a per-state JSON report (rendered client-side by the React app)
+4. **Builds** the React homepage, which lists all states and links to each report
 5. **Deploys** everything to GitHub Pages
 
 ### Workflow Configuration
@@ -172,30 +180,61 @@ Published to GitHub Pages:
 
 ```
 gh-pages/
-├── index.html              # Homepage with all state links and issue counts
-├── results.json            # Machine-readable results for each state
-├── vermont.html            # Individual state report (no timestamp)
-├── maine.html
-├── new-york.html
-└── ... (one per state)
+├── index.html              # React homepage (built by Vite) with all state links
+├── results.json            # Machine-readable summary for each state
+├── assets/                 # React app JS/CSS bundles
+└── reports/                # Per-state JSON reports, rendered by the React app
+    ├── vermont.json
+    ├── maine.json
+    ├── new-york.json
+    └── ... (one per state)
 ```
+
+Each state's detail view is served client-side by the React app at
+`#/state/<slug>`, which fetches `reports/<slug>.json` and renders the flagged
+ways as an interactive table — no separate static HTML page per state.
 
 ### Local Testing
 
 To test the workflow locally before pushing:
 
 ```bash
-# Download a single state and analyze
+# Backend: Download a single state and analyze
 python scripts/download_and_analyze.py
 
-# Or run directly
-python -m road_topology path/to/extract.osm.pbf --html-only --state-name "Vermont"
+# This generates gh-pages/results.json (summary) and
+# gh-pages/reports/<state>.json (per-state detail, consumed by the React app)
 
-# Generate the homepage
-python scripts/generate_homepage.py
+# Frontend: Build and preview the React app
+cd frontend
+npm install
+npm run build
+npm run preview  # Preview at http://localhost:4173/road_topology/
 ```
 
 Outputs go to `gh-pages/` directory by default, which is `.gitignore`'d.
+
+### Deployment Architecture
+
+The GitHub Pages deployment consists of:
+
+1. **Python Backend** (`road_topology/`)
+   - Analyzes OSM data for topology errors
+   - Generates `results.json` with analysis metadata and per-state summaries
+   - Produces per-state JSON reports (`reports/<state>.json`) with the flagged
+     ways and their properties, for the React app to render
+
+2. **React Frontend** (`frontend/`)
+   - Vite + React 18 application with HeroUI components
+   - Consumes `results.json` for the interactive dashboard
+   - Provides search, filtering, and sorting of state results
+   - Renders each state's detail report client-side (via `#/state/<slug>`) by
+     fetching and displaying `reports/<slug>.json` — no separate HTML pages
+
+3. **GitHub Pages Output** (`gh-pages/`)
+   - React app builds to `gh-pages/` via Vite
+   - Static analysis results (`results.json`, `reports/*.json`) also stored there
+   - Single source of truth at root domain
 
 ### GitHub Pages Setup
 

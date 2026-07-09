@@ -59,7 +59,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--html-only",
         action="store_true",
-        help="Output only HTML file (skip CSV and GeoJSON).",
+        help="Output only a legacy standalone HTML file (skip JSON/CSV/GeoJSON).",
+    )
+    p.add_argument(
+        "--json-only",
+        action="store_true",
+        help="Output only the JSON report consumed by the React frontend "
+        "(skip CSV, GeoJSON, and summary).",
+    )
+    p.add_argument(
+        "--with-html-report",
+        action="store_true",
+        help="Also write the legacy standalone HTML file alongside the JSON report.",
     )
     p.add_argument(
         "--state-name",
@@ -106,10 +117,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if not flagged:
         logger.info("No topology errors detected.")
-        return 0
 
     # ── Write output ───────────────────────────────────────────────────────
-    # ── Write output ──────────────────────────────────────
     written = write_all(
         flagged,
         output_dir=args.output_dir,
@@ -117,6 +126,8 @@ def main(argv: list[str] | None = None) -> int:
         elapsed_seconds=elapsed,
         prefix=args.prefix,
         html_only=args.html_only,
+        json_only=args.json_only,
+        write_html_report=args.with_html_report,
         state_name=args.state_name,
     )
 
