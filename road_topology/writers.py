@@ -146,7 +146,7 @@ def write_html(
         try:
             ts = dt.fromisoformat(fw.timestamp.replace("Z", "+00:00"))
             formatted_timestamp = ts.strftime("%-d %b '%y")
-        except (ValueError, AttributeError):
+        except ValueError, AttributeError:
             formatted_timestamp = fw.timestamp
 
         # Escape HTML characters in issue
