@@ -1,0 +1,80 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-build.yml"
+      - ".github/workflows/frontend-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Shares the "pages" concurrency group with nightly-analysis.yml so the two
+# workflows never deploy to GitHub Pages at the same time.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-frontend:
+    name: Build Frontend
+    uses: ./.github/workflows/frontend-build.yml
+
+  deploy:
+    name: Deploy Frontend to GitHub Pages
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend
+
+      - name: Assemble gh-pages site
+        run: |
+          mkdir -p gh-pages
+          cp -r frontend/. gh-pages/
+          rm -f gh-pages/input.css gh-pages/build.sh gh-pages/.tailwindcss-cli
+        # Copies the freshly built static site (HTML/JS/compiled CSS) into
+        # gh-pages/. The compiled results.json and reports/*.json are fetched
+        # from the currently-live site below, so we don't rerun the
+        # (expensive) OSM download-and-analyze step just to tweak the
+        # frontend.
+
+      - name: Fetch currently-published analysis data
+        run: |
+          set -euo pipefail
+          IFS='/' read -r owner repo <<< "${{ github.repository }}"
+          site_url="https://${owner}.github.io/${repo}"
+
+          echo "Fetching existing results.json from ${site_url}..."
+          if ! curl -sfL "${site_url}/results.json" -o gh-pages/results.json; then
+            echo "::warning::Could not fetch existing results.json from ${site_url} (site may not be deployed yet). Keeping the placeholder shipped in frontend/."
+            exit 0
+          fi
+
+          mkdir -p gh-pages/reports
+          slugs="$(python3 -c "import json,sys; print('\n'.join(s['state'] for s in json.load(open('gh-pages/results.json'))['results']))")"
+          for slug in $slugs; do
+            echo "Fetching reports/${slug}.json..."
+            curl -sfL "${site_url}/reports/${slug}.json" -o "gh-pages/reports/${slug}.json" \
+              || echo "::warning::Could not fetch reports/${slug}.json"
+          done
+        # This preserves whatever data the nightly analysis last published,
+        # so a frontend-only deploy never overwrites real analysis results
+        # with empty/placeholder data.
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: gh-pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -23,19 +23,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Tailwind CSS
-        run: ./frontend/build.sh
-        # Uses the standalone Tailwind CLI (no npm/Node required) to compile
-        # frontend/input.css into a purged, production-ready frontend/style.css.
-
       - name: Copy static frontend into gh-pages
         run: |
           mkdir -p gh-pages
           cp -r frontend/. gh-pages/
           rm -f gh-pages/input.css gh-pages/build.sh gh-pages/.tailwindcss-cli
-        # Copies the plain HTML/CSS/JS site (with the compiled style.css) into
-        # gh-pages/. The Python step below overwrites results.json and
-        # reports/*.json with real data afterwards.
+        # Copies the plain HTML/JS site into gh-pages/. style.css is not
+        # rebuilt here (see below); the Python step further down overwrites
+        # results.json and reports/*.json with real data afterwards.
+
+      - name: Fetch currently-deployed style.css
+        run: |
+          set -euo pipefail
+          IFS='/' read -r owner repo <<< "${{ github.repository }}"
+          site_url="https://${owner}.github.io/${repo}"
+
+          echo "Fetching compiled style.css from ${site_url}..."
+          if ! curl -sfL "${site_url}/style.css" -o gh-pages/style.css; then
+            echo "::warning::Could not fetch style.css from ${site_url}; falling back to the checked-in frontend/style.css."
+          fi
+        # The frontend-deploy workflow rebuilds and deploys style.css whenever
+        # frontend/ changes, so the live site always has the current compiled
+        # CSS. Reusing it here avoids rebuilding Tailwind on every nightly run
+        # just to reproduce the same output.
 
       - name: Set up Python
         uses: actions/setup-python@v6

@@ -1,0 +1,35 @@
+name: Frontend Build
+
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-build.yml"
+  workflow_dispatch:
+  workflow_call:
+  # Note: intentionally no `push` trigger here. Pushes to `main` that touch
+  # frontend/ are handled by frontend-deploy.yml, which calls this workflow
+  # via workflow_call to build before deploying. Adding a push trigger here
+  # too would build the frontend twice for the same commit.
+
+jobs:
+  build:
+    name: Build Tailwind CSS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Tailwind CSS
+        run: ./frontend/build.sh
+        # Uses the standalone Tailwind CLI (no npm/Node required) to compile
+        # frontend/input.css into a purged, production-ready frontend/style.css.
+
+      - name: Upload built frontend as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: |
+            frontend/
+            !frontend/.tailwindcss-cli
+          retention-days: 7
