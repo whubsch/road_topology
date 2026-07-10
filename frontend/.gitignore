@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Downloaded standalone Tailwind CLI binary (fetched by build.sh)
+.tailwindcss-cli
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

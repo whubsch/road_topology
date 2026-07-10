@@ -3,7 +3,7 @@
 Download OSM PBF files from Geofabrik and analyze them for topology errors.
 
 Processes all US state extracts, generates per-state JSON reports (rendered
-by the React frontend), and stores them for GitHub Pages deployment.
+by the static frontend), and stores them for GitHub Pages deployment.
 """
 
 import logging
@@ -124,7 +124,7 @@ def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
 
     logger.info("Analyzing %s...", state)
     try:
-        # Run the osm-highway-checker, producing a JSON report the React
+        # Run the osm-highway-checker, producing a JSON report the static
         # frontend can fetch and render directly (no standalone HTML page).
         result = subprocess.run(
             [

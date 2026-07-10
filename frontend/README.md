@@ -1,6 +1,9 @@
 # Road Topology Frontend
 
-React-based interactive dashboard for viewing OSM highway topology error analysis results.
+A plain HTML/CSS/JavaScript dashboard for viewing OSM highway topology error
+analysis results. No framework, and no Node.js/npm required — Tailwind CSS is
+compiled ahead of time with the standalone Tailwind CLI into a small, purged
+`style.css` file.
 
 ## Features
 
@@ -9,38 +12,36 @@ React-based interactive dashboard for viewing OSM highway topology error analysi
 - **Status Filtering**: Filter by successful analyses or failed runs
 - **Live Statistics**: Dashboard displays total states, total issues, and success rate
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **State Reports**: Links to detailed HTML reports for each state
-- **HeroUI Components**: Modern, accessible UI components with Tailwind CSS
+- **State Reports**: Detailed, per-state issue tables with links to iD, JOSM, and Level0 editors
 
 ## Development
 
-### Prerequisites
-
-- Node.js 18+ (recommended: 20)
-- npm or yarn
-
-### Installation
+`style.css` is a generated file, compiled from `input.css`. If you change
+`input.css` or add/remove Tailwind classes in `index.html`/`app.js`, rebuild it:
 
 ```bash
 cd frontend
-npm install
+./build.sh
 ```
 
-### Development Server
+This downloads the standalone Tailwind CLI binary for your platform (cached as
+`.tailwindcss-cli`, gitignored) — no Node.js or npm required — and regenerates
+`style.css`.
+
+To preview locally, serve this directory with any static file server, for example:
 
 ```bash
-npm run dev
+cd frontend
+python -m http.server 8000
 ```
 
-The app will be available at `http://localhost:5173/road_topology/`
+Then open `http://localhost:8000/`.
 
-### Building for Production
+## Deployment
 
-```bash
-npm run build
-```
-
-Output is generated in `../gh-pages` for GitHub Pages deployment.
+The GitHub Actions workflow copies the contents of this directory directly
+into `gh-pages/`, then the analysis script overwrites `results.json` and
+`reports/*.json` with fresh data.
 
 ## Data Format
 
@@ -63,16 +64,14 @@ The frontend expects a `results.json` file with the following structure:
 }
 ```
 
-## Component Structure
+Each state also has a `reports/<state>.json` file with the detailed,
+per-way issue list rendered on the state report page.
 
-- **App.jsx** - Main application component, handles data fetching and state management
-- **Header.jsx** - Dashboard header with statistics cards
-- **SearchAndFilter.jsx** - Search, sort, and filter controls
-- **ResultsList.jsx** - Grid display of state results
+## File Structure
 
-## Environment
-
-- Built with Vite for fast development and optimized production builds
-- Uses React 18+ for modern component patterns
-- HeroUI provides accessible, customizable components
-- Tailwind CSS for styling
+- `index.html` — page shell
+- `app.js` — all application logic: data fetching, hash-based routing, and rendering
+- `input.css` — Tailwind entry point plus custom styles not covered by utility classes
+- `style.css` — **generated** by `build.sh`; the compiled, purged CSS actually served to the browser
+- `build.sh` — downloads the standalone Tailwind CLI and compiles `input.css` → `style.css`
+- `results.json` / `reports/*.json` — sample data for local development (overwritten in CI)

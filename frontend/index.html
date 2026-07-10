@@ -2,12 +2,16 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>OSM Highway Topology Error Reports</title>
+        <link rel="stylesheet" href="style.css" />
     </head>
-    <body>
-        <div id="root"></div>
-        <script type="module" src="/src/main.jsx"></script>
+    <body class="min-h-screen bg-slate-950 text-slate-100">
+        <div
+            id="app"
+            class="mx-auto max-w-6xl px-6 py-10 sm:px-8 lg:px-12"
+        ></div>
+        <script src="app.js"></script>
     </body>
 </html>
