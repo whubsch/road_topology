@@ -1,4 +1,5 @@
 output/
+gh-pages/
 .venv/
 .ropeproject/
 
@@ -21,3 +22,9 @@ __pycache__/
 *.osm.pbf
 
 *.egg-info/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local

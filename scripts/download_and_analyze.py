@@ -2,8 +2,8 @@
 """
 Download OSM PBF files from Geofabrik and analyze them for topology errors.
 
-Processes all US state extracts, generates HTML reports, and stores them for
-GitHub Pages deployment.
+Processes all US state extracts, generates per-state JSON reports (rendered
+by the static frontend), and stores them for GitHub Pages deployment.
 """
 
 import logging
@@ -113,22 +113,26 @@ def download_pbf(state: str, output_dir: Path) -> Path | None:
 
 def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
     """Analyze a PBF file for topology errors."""
-    import re
+    import json
     import shutil
 
     state_name = STATE_NAMES.get(state, state.replace("-", " ").title())
-    output_file = output_dir / f"{state}.html"
+
+    reports_dir = output_dir / "reports"
+    reports_dir.mkdir(exist_ok=True)
+    output_file = reports_dir / f"{state}.json"
 
     logger.info("Analyzing %s...", state)
     try:
-        # Run the osm-highway-checker
+        # Run the osm-highway-checker, producing a JSON report the static
+        # frontend can fetch and render directly (no standalone HTML page).
         result = subprocess.run(
             [
                 sys.executable,
                 "-m",
                 "road_topology",
                 str(pbf_path),
-                "--html-only",
+                "--json-only",
                 "-o",
                 str(output_dir / ".tmp"),
                 "--prefix",
@@ -148,14 +152,14 @@ def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
             logger.error("stderr: %s", result.stderr)
             return {"state": state, "name": state_name, "issues": 0, "success": False}
 
-        # Find the generated HTML file and rename it
+        # Find the generated JSON report and move it into place
         tmp_dir = output_dir / ".tmp"
-        html_files = list(tmp_dir.glob(f"{state}_*.html"))
+        json_files = list(tmp_dir.glob(f"{state}_*.json"))
 
-        if html_files:
-            # Use the first (and should be only) HTML file
-            tmp_html = html_files[0]
-            tmp_html.rename(output_file)
+        if json_files:
+            # Use the first (and should be only) JSON file
+            tmp_json = json_files[0]
+            tmp_json.rename(output_file)
             logger.info("Generated report: %s", output_file)
 
             # Clean up temporary directory
@@ -164,12 +168,10 @@ def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
             except Exception as e:
                 logger.warning("Failed to remove temp directory: %s", e)
 
-            # Extract issue count from the HTML
+            # Extract issue count from the JSON report
             with open(output_file, "r") as f:
-                content = f.read()
-                # Look for "Total Issues: X,XXX" in the metadata
-                match = re.search(r"Total Issues:</strong> ([\d,]+)", content)
-                issue_count = int(match.group(1).replace(",", "")) if match else 0
+                report = json.load(f)
+                issue_count = report.get("total_issues", 0)
 
             return {
                 "state": state,
@@ -178,7 +180,7 @@ def analyze_pbf(pbf_path: Path, state: str, output_dir: Path) -> dict:
                 "success": True,
             }
         else:
-            logger.error("No HTML file generated for %s", state)
+            logger.error("No JSON report generated for %s", state)
             return {"state": state, "name": state_name, "issues": 0, "success": False}
 
     except Exception as e:
@@ -236,10 +238,24 @@ def main():
 
     # Save results for homepage generation
     import json
+    from datetime import datetime, timezone
 
     results_file = pages_dir / "results.json"
+
+    # Sort results by name
+    results = sorted(results, key=lambda x: x["name"])
+
+    # Create comprehensive results object with metadata
+    results_data = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "total_states": len(results),
+        "total_issues": sum(r["issues"] for r in results),
+        "successful_analyses": sum(1 for r in results if r["success"]),
+        "results": results,
+    }
+
     with open(results_file, "w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(results_data, f, indent=2)
 
     logger.info("=" * 60)
     logger.info("Analysis complete!")

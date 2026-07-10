@@ -1,0 +1,43 @@
+{
+  "state_name": "Idaho",
+  "generated": "2026-06-30T10:37:54.419411+00:00",
+  "total_issues": 11,
+  "flagged": [
+    {
+      "way_id": 123456789,
+      "name": "N Main St",
+      "highway": "secondary",
+      "rank": 3,
+      "version": 5,
+      "changeset": 98765432,
+      "user": "example_user",
+      "timestamp": "2025-11-02T14:22:10Z",
+      "start_connecting_highways": "residential",
+      "end_connecting_highways": "residential",
+      "start_min_rank": 6,
+      "end_min_rank": 6,
+      "osm_url": "https://www.openstreetmap.org/way/123456789",
+      "josm_url": "http://127.0.0.1:8111/load_object?objects=w123456789",
+      "id_url": "https://www.openstreetmap.org/edit?editor=id&way=123456789",
+      "level0_url": "https://level0.osmz.ru/?url=https://www.openstreetmap.org/way/123456789"
+    },
+    {
+      "way_id": 223456789,
+      "name": "E State Hwy 44",
+      "highway": "primary",
+      "rank": 2,
+      "version": 3,
+      "changeset": 87654321,
+      "user": "example_user",
+      "timestamp": "2025-09-14T08:05:33Z",
+      "start_connecting_highways": "tertiary",
+      "end_connecting_highways": "unclassified",
+      "start_min_rank": 4,
+      "end_min_rank": 7,
+      "osm_url": "https://www.openstreetmap.org/way/223456789",
+      "josm_url": "http://127.0.0.1:8111/load_object?objects=w223456789",
+      "id_url": "https://www.openstreetmap.org/edit?editor=id&way=223456789",
+      "level0_url": "https://level0.osmz.ru/?url=https://www.openstreetmap.org/way/223456789"
+    }
+  ]
+}

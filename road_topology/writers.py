@@ -1,7 +1,9 @@
 """Output writers.
 
 Supported formats:
+  - Report JSON  Machine-readable table data consumed by the React frontend
   - HTML         Interactive table with object details and links to editors
+                 (legacy/standalone format, kept for offline viewing)
   - CSV          Simple tabular format for spreadsheet review
   - GeoJSON      Point features for each flagged way (centroid of both termini)
                  with full properties; load directly in QGIS / geojson.io
@@ -19,6 +21,40 @@ from datetime import datetime, timezone
 from .checker import FlaggedWay
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Report JSON (consumed by the React frontend)
+# ---------------------------------------------------------------------------
+
+
+def write_report_json(
+    flagged: list[FlaggedWay], path: str, state_name: str | None = None
+) -> None:
+    """Write flagged ways to a JSON report consumed by the React frontend.
+
+    This replaces the standalone per-state HTML page: instead of a fully
+    rendered document, we emit structured data (metadata + a row per
+    flagged way) so the site's React app can fetch and render it directly.
+    """
+    rows = []
+    for fw in sorted(flagged, key=lambda x: (x.rank, -x.version)):
+        row = fw.to_dict()
+        row["start_connecting_highways"] = row["start_connecting_highways"] or None
+        row["end_connecting_highways"] = row["end_connecting_highways"] or None
+        rows.append(row)
+
+    report = {
+        "state_name": state_name,
+        "generated": datetime.now(timezone.utc).isoformat(),
+        "total_issues": len(flagged),
+        "flagged": rows,
+    }
+
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(report, fh, indent=2)
+
+    logger.info("Report JSON written: %s (%d rows)", path, len(flagged))
 
 
 # ---------------------------------------------------------------------------
@@ -342,13 +378,20 @@ def write_all(
     elapsed_seconds: float,
     prefix: str = "osm_highway_errors",
     html_only: bool = False,
+    json_only: bool = False,
+    write_html_report: bool = False,
     state_name: str | None = None,
 ) -> dict[str, str]:
     """
     Write output files to output_dir.
 
-    By default, writes HTML, CSV, GeoJSON, and summary report.
-    If html_only=True, writes only the HTML file.
+    By default, writes a JSON report (consumed by the React frontend), CSV,
+    GeoJSON, and a plain-text summary.
+
+    - If json_only=True, writes only the JSON report.
+    - If html_only=True, writes only the (legacy) standalone HTML file.
+    - If write_html_report=True, also writes the legacy standalone HTML file
+      alongside the other formats.
 
     Returns a dict of {format: filepath}.
     """
@@ -356,13 +399,17 @@ def write_all(
     date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     stem = f"{prefix}_{date_str}"
 
+    if html_only:
+        paths = {"html": os.path.join(output_dir, f"{stem}.html")}
+        write_html(flagged, paths["html"], state_name=state_name)
+        return paths
+
     paths = {
-        "html": os.path.join(output_dir, f"{stem}.html"),
+        "json": os.path.join(output_dir, f"{stem}.json"),
     }
+    write_report_json(flagged, paths["json"], state_name=state_name)
 
-    write_html(flagged, paths["html"], state_name=state_name)
-
-    if not html_only:
+    if not json_only:
         paths["csv"] = os.path.join(output_dir, f"{stem}.csv")
         paths["geojson"] = os.path.join(output_dir, f"{stem}.geojson")
         paths["summary"] = os.path.join(output_dir, f"{stem}_summary.txt")
@@ -370,5 +417,9 @@ def write_all(
         write_csv(flagged, paths["csv"])
         write_geojson(flagged, paths["geojson"])
         write_summary(flagged, paths["summary"], pbf_path, elapsed_seconds)
+
+        if write_html_report:
+            paths["html"] = os.path.join(output_dir, f"{stem}.html")
+            write_html(flagged, paths["html"], state_name=state_name)
 
     return paths
