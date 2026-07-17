@@ -208,6 +208,8 @@ function renderResultsList(results) {
 }
 
 function renderDashboard() {
+  document.title = "OSM Highway Topology Error Reports";
+
   appEl.innerHTML = `
     <div class="space-y-10">
       ${renderHeader(state.results)}
@@ -316,12 +318,9 @@ function renderStateReportTable(report) {
               <td class="px-4 py-3.5 text-orange-300">Start: ${escapeHtml(fw.start_connecting_highways || "none")}; End: ${escapeHtml(fw.end_connecting_highways || "none")}</td>
               <td class="px-4 py-3.5 whitespace-nowrap">
                 <div class="flex gap-2">
-                  <a href="${escapeHtml(fw.id_url)}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold px-2 py-1 rounded bg-blue-700 text-white hover:opacity-90">iD</a>
-                  <a href="${escapeHtml(fw.josm_url)}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold px-2 py-1 rounded bg-slate-600 text-white hover:opacity-90">JOSM</a>
-                  <a href="${escapeHtml(fw.level0_url)}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold px-2 py-1 rounded bg-green-700 text-white hover:opacity-90 inline-flex items-center gap-1">
-                    L0
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  </a>
+                  <a href="${escapeHtml(fw.id_url)}" target="_blank" rel="noopener noreferrer" class="editor-link text-xs font-bold px-2 py-1 rounded bg-blue-700 text-white hover:opacity-90">iD</a>
+                  <a href="${escapeHtml(fw.josm_url)}" target="_blank" rel="noopener noreferrer" class="editor-link text-xs font-bold px-2 py-1 rounded bg-slate-600 text-white hover:opacity-90">JOSM</a>
+                  <a href="${escapeHtml(fw.level0_url)}" target="_blank" rel="noopener noreferrer" class="editor-link text-xs font-bold px-2 py-1 rounded bg-green-700 text-white hover:opacity-90">L0</a>
                 </div>
               </td>
             </tr>
@@ -344,6 +343,10 @@ function renderBackButton() {
 }
 
 async function renderStateReport(stateSlug, stateName) {
+  document.title = stateName
+    ? `${stateName} — OSM Highway Topology Errors`
+    : "OSM Highway Topology Error Reports";
+
   appEl.innerHTML = `
     <div class="space-y-8">
       ${renderBackButton()}
@@ -360,6 +363,8 @@ async function renderStateReport(stateSlug, stateName) {
     }
     const report = await response.json();
     const displayName = report.state_name || stateName || stateSlug;
+
+    document.title = `${displayName} — OSM Highway Topology Errors`;
 
     appEl.innerHTML = `
       <div class="space-y-8">

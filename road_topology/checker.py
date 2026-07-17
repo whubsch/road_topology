@@ -83,7 +83,7 @@ class FlaggedWay:
 
     def level0_url(self) -> str:
         """Level0 editor link."""
-        return f"https://level0.osmz.ru/?url=https://www.openstreetmap.org/way/{self.way_id}"
+        return f"https://level0.osmz.ru/?url=w{self.way_id}"
 
     def to_dict(self) -> dict:
         return {
