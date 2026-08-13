@@ -45,16 +45,16 @@ pip install osmium
 
 ```bash
 # Analyse a regional extract
-python -m osm_highway_checker path/to/region.osm.pbf
+python -m road_topology path/to/region.osm.pbf
 
 # With a custom output directory
-python -m osm_highway_checker region.osm.pbf --output-dir results/
+python -m road_topology region.osm.pbf --output-dir results/
 
 # Only emit the JSON report consumed by the frontend
-python -m osm_highway_checker region.osm.pbf --json-only
+python -m road_topology region.osm.pbf --json-only
 
 # Verbose logging
-python -m osm_highway_checker region.osm.pbf -v
+python -m road_topology region.osm.pbf -v
 ```
 
 ### Output files

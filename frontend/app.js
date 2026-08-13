@@ -321,6 +321,11 @@ function renderStateReportTable(report) {
                   <a href="${escapeHtml(fw.id_url)}" target="_blank" rel="noopener noreferrer" class="editor-link text-xs font-bold px-2 py-1 rounded bg-blue-700 text-white hover:opacity-90">iD</a>
                   <a href="${escapeHtml(fw.josm_url)}" target="_blank" rel="noopener noreferrer" class="editor-link text-xs font-bold px-2 py-1 rounded bg-slate-600 text-white hover:opacity-90">JOSM</a>
                   <a href="${escapeHtml(fw.level0_url)}" target="_blank" rel="noopener noreferrer" class="editor-link text-xs font-bold px-2 py-1 rounded bg-green-700 text-white hover:opacity-90">L0</a>
+                  ${
+                    fw.josm_autofix_url
+                      ? `<a href="${escapeHtml(fw.josm_autofix_url)}" target="_blank" rel="noopener noreferrer" title="JOSM autofix: set highway=${escapeHtml(fw.suggested_highway || "")}" class="editor-link text-xs font-bold px-2 py-1 rounded bg-orange-600 text-white hover:opacity-90">Fix→${escapeHtml(fw.suggested_highway || "")}</a>`
+                      : ""
+                  }
                 </div>
               </td>
             </tr>

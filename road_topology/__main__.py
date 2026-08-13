@@ -2,7 +2,7 @@
 OSM Highway Hierarchy Checker — CLI entry point.
 
 Usage:
-    python -m osm_highway_checker path/to/region.osm.pbf [options]
+    python -m road_topology path/to/region.osm.pbf [options]
 
 or after pip install:
     osm-highway-checker path/to/region.osm.pbf [options]

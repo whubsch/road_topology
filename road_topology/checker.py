@@ -21,7 +21,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from .hierarchy import is_analysed, qualifies_as_upgrade
+from .hierarchy import get_rank, is_analysed, qualifies_as_upgrade, rank_to_highway
 from .parser import NodeCoord, WayRecord
 
 logger = logging.getLogger(__name__)
@@ -85,6 +85,60 @@ class FlaggedWay:
         """Level0 editor link."""
         return f"https://level0.osmz.ru/?url=w{self.way_id}"
 
+    def suggested_highway(self) -> Optional[str]:
+        """
+        Guess the correct `highway` tag value for this way based on the
+        connectivity of its two termini and whether it carries a name.
+
+        Since this way was flagged, both termini connect only to roads of
+        a *lower* classification than the way's current tag. That implies
+        the way is very likely over-classified, and should probably be
+        downgraded to match the most important road it actually connects
+        to. If the way has no name, it's also likely a `_link` road
+        (a ramp/connector) rather than a through route, so we prefer the
+        `_link` variant of the guessed class when available.
+        """
+        neighbour_ranks = [
+            r
+            for r in (
+                get_rank(hw)
+                for hw in (
+                    self.start.connecting_highways + self.end.connecting_highways
+                )
+            )
+            if r is not None
+        ]
+        if not neighbour_ranks:
+            return None
+
+        # The best (most important / lowest numbered) connecting road found
+        # at either terminus is our best guess for the way's true class.
+        best_rank = min(neighbour_ranks)
+
+        # Never suggest downgrading to something *less* important than what
+        # we already found, and never "upgrade" past the way's own rank.
+        best_rank = max(best_rank, 1)
+
+        is_link = not self.name
+        return rank_to_highway(best_rank, is_link=is_link)
+
+    def josm_autofix_url(self) -> Optional[str]:
+        """
+        JOSM editor link that both loads the object and pre-fills the
+        `addtags` parameter with the guessed `highway` tag fix, so the
+        JOSM "Update" just needs to be confirmed (or edited) by the mapper.
+
+        Returns None if no suggestion could be made (e.g. no valid
+        connecting neighbours) or if the suggestion matches the current tag.
+        """
+        suggestion = self.suggested_highway()
+        if not suggestion or suggestion == self.highway:
+            return None
+        return (
+            f"http://localhost:8111/load_object?new_layer=false&objects=w{self.way_id}"
+            f"&addtags=highway={suggestion}"
+        )
+
     def to_dict(self) -> dict:
         return {
             "way_id": self.way_id,
@@ -116,6 +170,8 @@ class FlaggedWay:
             "josm_url": self.josm_url(),
             "id_url": self.id_url(),
             "level0_url": self.level0_url(),
+            "suggested_highway": self.suggested_highway(),
+            "josm_autofix_url": self.josm_autofix_url(),
         }
 
 

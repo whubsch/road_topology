@@ -53,6 +53,39 @@ RANK_LABEL: dict[int, str] = {
 }
 
 
+# Canonical highway tag value for a given rank (used when guessing a fix).
+# Rank 6 is ambiguous between unclassified/residential; we default to
+# "unclassified" as the more conservative / lower-traffic guess.
+RANK_TO_HIGHWAY: dict[int, str] = {
+    1: "motorway",
+    2: "trunk",
+    3: "primary",
+    4: "secondary",
+    5: "tertiary",
+    6: "unclassified",
+    7: "service",
+    8: "track",
+    9: "path",
+}
+
+# Ranks (1-5) that have a "_link" variant in OSM.
+LINK_ELIGIBLE_RANKS = {1, 2, 3, 4, 5}
+
+
+def rank_to_highway(rank: int, is_link: bool = False) -> Optional[str]:
+    """Return the canonical highway tag value for a rank.
+
+    If `is_link` is True and the rank supports a _link variant, the
+    "_link" suffixed tag is returned instead.
+    """
+    base = RANK_TO_HIGHWAY.get(rank)
+    if base is None:
+        return None
+    if is_link and rank in LINK_ELIGIBLE_RANKS:
+        return f"{base}_link"
+    return base
+
+
 def get_rank(highway_value: str) -> Optional[int]:
     """Return the numeric rank for a highway tag value, or None if unknown."""
     return HIGHWAY_RANK.get(highway_value)
