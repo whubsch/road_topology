@@ -20,11 +20,11 @@ dev = [
 ]
 
 [project.scripts]
-osm-highway-checker = "osm_highway_checker.__main__:main"
+osm-highway-checker = "road_topology.__main__:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["osm_highway_checker*"]
+include = ["road_topology*"]

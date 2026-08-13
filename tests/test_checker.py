@@ -8,17 +8,17 @@ from __future__ import annotations
 
 import pytest
 
-from osm_highway_checker.hierarchy import (
+from road_topology.hierarchy import (
     get_rank,
     is_analysed,
     qualifies_as_upgrade,
 )
-from osm_highway_checker.checker import (
+from road_topology.checker import (
     FlaggedWay,
     build_terminus_index,
     check_topology,
 )
-from osm_highway_checker.parser import WayRecord, NodeCoord
+from road_topology.parser import WayRecord, NodeCoord
 
 # ---------------------------------------------------------------------------
 # Helpers

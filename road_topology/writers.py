@@ -109,6 +109,8 @@ def write_html(
         "    .josm-link:visited { background: #999999; color: white; }",
         "    .level0-link { background: #4caf50; color: white; }",
         "    .level0-link:visited { background: #999999; color: white; }",
+        "    .autofix-link { background: #e67e22; color: white; }",
+        "    .autofix-link:visited { background: #999999; color: white; }",
         "    .issue { color: #d32f2f; font-size: 13px; }",
         "    .header { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }",
         "  </style>",
@@ -146,7 +148,7 @@ def write_html(
         try:
             ts = dt.fromisoformat(fw.timestamp.replace("Z", "+00:00"))
             formatted_timestamp = ts.strftime("%-d %b '%y")
-        except ValueError, AttributeError:
+        except (ValueError, AttributeError):
             formatted_timestamp = fw.timestamp
 
         # Escape HTML characters in issue
@@ -172,7 +174,15 @@ def write_html(
                 f"          <a href='{fw.id_url()}' target='_blank' class='editor-btn id-link'>iD</a>",
                 f"          <a href='{fw.josm_url()}' target='_blank' class='editor-btn josm-link'>JOSM</a>",
                 f"          <a href='{fw.level0_url()}' target='_blank' class='editor-btn level0-link'>L0</a>"
-                f"        </td>",
+                + (
+                    f"<a href='{fw.josm_autofix_url()}' target='_blank' "
+                    f"class='editor-btn autofix-link' "
+                    f"title='JOSM autofix: set highway={fw.suggested_highway()}'>"
+                    f"Fix→{fw.suggested_highway()}</a>"
+                    if fw.josm_autofix_url()
+                    else ""
+                )
+                + "</td>",
                 "      </tr>",
             ]
         )
